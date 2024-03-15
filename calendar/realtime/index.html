@@ -1,0 +1,600 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link href="../css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="../node_modules/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+	<style>
+		html, body {
+			background: #212529;
+		}
+
+		#calendar {
+			display: flex;
+			height: 80%;
+		}
+
+		.table-calendar {
+			margin: 5ex;
+			height: 100%;
+			background: #FFF;
+			border-radius: 1em;
+		}
+
+		.input-hide {
+			left: 0;
+	  		top: 0;
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			opacity: 0;
+			transition: opacity 0.7s;
+			border-radius: 1em;
+		}
+
+		.input-hide:hover {
+			opacity: 0.5;
+			background-color: #212529;
+			transition: opacity 0.7s;
+			border-radius: 1em;
+		}
+
+		.middle-size {
+			font-size: 1.5em;
+		}
+
+		thead > tr {
+			height: 7ex;
+		}
+
+		thead > tr > th {
+			width: calc(100% / 7);
+		}
+
+		tbody > tr {
+			height: calc(100% / 7);
+			/*border-bottom-style: none;*/
+		}
+
+		tbody > tr > th {
+			width: calc(100% / 7);
+		}
+
+		th {
+			text-align: center;
+		}
+
+		td {
+			position: relative;
+			text-align: center;
+			border-top-width: 2px;
+			border-top-style: solid;
+			border-bottom-style: none;
+		}
+
+	/*	td > div > label {
+			vertical-align: middle;
+		}
+*/		
+		td > div > input {
+			border: 0px;
+		} 	
+	
+		td > div {
+			width: 100%;
+			height: 100%;
+			display: flex;
+  			align-items: center;
+  			justify-content: center;
+		}
+
+		#condition {
+			margin: 5ex;
+			/*display: flex;*/
+			width: 100%;
+			height: 100%;
+			background: #FFF;
+			border-radius: 1em;
+		}
+
+		#modes {
+			justify-content: center;
+		}
+
+		#modals {
+			margin: 2ex;
+		}
+
+		/*.modes {
+			display: block;
+		}
+*/
+	</style>
+</head>
+<body>
+	<div id='calendar'>
+		<table class="table table-sm table-calendar">
+	      	<thead>
+				<tr>
+					<th scope="col">Понедельник</th>
+					<th scope="col">Вторник</th>
+					<th scope="col">Среда</th>
+					<th scope="col">Четверг</th>
+					<th scope="col">Пятница</th>
+					<th scope="col">Суббота</th>
+					<th scope="col">Воскресенье</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<div id="condition">
+
+			<nav>
+			  <div class="nav nav-tabs" id="modes" role="tablist">
+			   
+			  </div>
+			</nav>
+
+			<div class="tab-content" id="modals">		  
+			  
+			</div>
+
+		</div>
+	</div>
+	<div class="modal-dialog modal-lg" style="width:90%"></div>
+
+	<script src="../js/bootstrap.bundle.min.js"></script>
+
+<script type="text/javascript">
+
+	const getEmpoyeesList = function() {
+		return [
+			{
+				name: "Петр петрович",
+				phone: "88005553535"
+			}, 
+					{
+				name: "Иван иванович",
+				phone: "88005553535"
+			},
+					{
+				name: "Кто то ",
+				phone: "88005553535"
+			},
+		];
+
+		// let res = await fetch("/getEmpoyeesList");
+		// res = await res.json();
+		// return res;
+	};
+	
+	const createTitleOnTabpanel = function(conditionId, tabpanelId, title, isActive) {
+
+		const active = [
+			"",
+			"active"
+		][isActive];
+
+		appendTree(selectTags(getById(conditionId))('nav')('div').getTag(), createTree({
+			button: {
+				attrs: [{
+					class: `nav-link ${active}`,
+					id: `nav-${tabpanelId}-tab`,
+					"data-bs-toggle": "tab",
+					"data-bs-target": `#nav-${tabpanelId}`,
+					type: "button",
+					role: "tab",
+					"aria-controls": `nav-${tabpanelId}`,
+				}],
+				innerText: [title],
+			},
+		}));
+	};
+	
+	const generateTabpanel = function(conditionId, buttonType, employees, tabpanelId, title, isActive=0) {
+		
+		createTitleOnTabpanel(conditionId, tabpanelId, title, isActive);
+
+		const active = [
+			"",
+			"active"
+		][isActive];
+
+		appendTree(selectTags(getById(conditionId))('div').getTag(), createTree({
+			div: {	
+				attrs: [{
+					id: `nav-${tabpanelId}`,
+					class: `tab-pane fade show ${active}`,
+					"aria-labelledby": `nav-${tabpanelId}-tab`,
+				}],
+				div: {
+					attrs: [{
+						class: "form-check",
+					}],
+					input: {
+						attrs: [{
+							class: "form-check-input",
+							type: buttonType,
+						}],
+					},
+					label: {
+						attrs: [{
+							class: "form-check-label",
+						}],
+					},
+					count: employees.length,
+				},
+				
+			}
+		}));
+
+		selectTags(getById(`nav-${tabpanelId}`))("div")("label").getTags().forEach((tag, i) => {
+			tag.innerText = employees[i].name;
+			tag.setAttribute("for", `${tabpanelId}-${i}`);
+		});
+
+		const buttonName = {
+			radio: "flexCheckDefault",
+			checkbox: "flexCheckDefault",
+		}[buttonType];
+
+		selectTags(getById(`nav-${tabpanelId}`))("div")("input").getTags().forEach((tag, i) => {
+			tag.setAttribute("id", `${tabpanelId}-${i}`);
+			tag.setAttribute("name", buttonName);	
+		});
+
+		selectTags(getById(`nav-${tabpanelId}`)).getTag().setAttribute("role", "tabpanel");
+	};
+
+	const generateTabpanelWithInfoTable = function(conditionId, rows, tabpanelId, tableFields, title, isActive=0) {
+
+		createTitleOnTabpanel(conditionId, tabpanelId, title, isActive);
+
+		const active = [
+			"",
+			"active"
+		][isActive];
+
+		appendTree(selectTags(getById(conditionId))('div').getTag(), createTree({
+			div: {	
+				attrs: [{
+					id: `nav-${tabpanelId}`,
+					class: `tab-pane fade show ${active}`,
+					"aria-labelledby": `nav-${tabpanelId}-tab`,
+				}],
+				table: {
+					attrs: [{
+						class: "table table-striped",
+						id: tabpanelId,
+					}],
+					thead: {
+						tr: {
+							th: {
+								count: tableFields.length,
+							},
+						},
+					},
+					tbody: {},
+				},
+			},
+		}));
+
+		selectTags(getById(tabpanelId))('thead')('tr')('th').getTags().forEach((tag, i) => {
+			tag.innerText = tableFields[i];
+		});
+
+		rows.forEach((row) => {
+			addRowIntoTable(getById(tabpanelId), row);
+		});
+	};
+
+	const clearTabpanels = function(conditionId) {
+		selectTags(getById(conditionId))('nav')('div').getTag().innerHTML = '';
+		selectTags(getById(conditionId))('div').getTag().innerHTML = '';
+	};
+
+	const getById = function(elId) {
+		return document.getElementById(elId);
+	};
+
+	const fillObject = function(object, aggregate) {
+		Object.keys(aggregate).forEach((keys) => {
+			if (object[keys] === undefined) {
+				object[keys] = aggregate[keys];
+			}
+		});
+
+		return object;
+	};
+
+	const createEl = function(elName, attrs={}, properties={}) {
+		const el = document.createElement(elName);
+		for (const [key, value] of Object.entries(attrs)) {
+			el.setAttribute(key, value);
+		}
+		for (const [key, value] of Object.entries(properties)) {
+			el[key] = value;
+		}
+		return el;
+	};
+
+	const createTree = function(tagsTree, nodeName=null) {
+		const childrenNodesGroups = [];
+		let isSheet = true;
+		Object.keys(tagsTree).forEach((keys) => {
+			if (Object.prototype.toString.call(tagsTree[keys]) === "[object Object]") {
+				isSheet = false;
+				childrenNodesGroups.push(createTree(tagsTree[keys], keys));
+				delete tagsTree[keys];
+
+			}
+		});
+
+		if (nodeName == null) {
+			return childrenNodesGroups;
+		}
+
+		const defaultNode = {
+			count: 1,
+			innerText: [""],
+			attrs: [{}],
+			counter: "",
+			onclick: () => {},
+		};
+
+		tagsTree = fillObject(tagsTree, defaultNode);
+
+		let counter = 0;
+		const nodes = [];
+
+		for (let i = 0; i < tagsTree.count; i++) {
+			const newNode = createEl(nodeName, tagsTree.attrs[0], {
+				innerText: tagsTree.innerText[counter%tagsTree.innerText.length],
+			});
+			counter++;
+			if (isSheet == false) {
+				childrenNodesGroups.forEach((childNodeGroup) => {
+					childNodeGroup.forEach((childNode) => {
+						newNode.appendChild(childNode.cloneNode(true));
+					})
+				});
+			}
+			nodes.push(newNode);
+		}
+
+		return nodes;
+	}
+
+	const appendTree = function(root, tree) {
+		tree.forEach((newNodesGroup) => {
+			newNodesGroup.forEach((newNode) => {
+				root.appendChild(newNode);
+			});
+		});
+		return root;
+	}
+
+	const selectTags = function(...startRoots) {
+		let rootsQueue = startRoots;
+		const findTags = function(nextStepTagName, pointers=null) {
+			const findTagsBuff = [];
+
+			rootsQueue.reverse();
+
+			while (rootsQueue.length != 0) {
+				const root = rootsQueue.pop();
+				for (const child of root.children) {
+					if (child.tagName.toLowerCase() === nextStepTagName) {
+						findTagsBuff.push(child);
+					}
+				}
+			}
+			
+			rootsQueue = (pointers == null) ? findTagsBuff: findTagsBuff.filter((v, index) => pointers.includes(index));
+			
+			return findTags;
+		}
+		findTags.getTags = () => rootsQueue;
+		findTags.getTag = () => {
+			if (rootsQueue.length === 1) {
+				return rootsQueue[0];
+			}
+
+			if (rootsQueue.length === 0) {
+				return null;
+			}
+			throw new function () {console.log("More than one tag was found")}();
+		}
+		findTags.reverse = () => {
+			rootsQueue.reverse();
+			return findTags;
+		}
+		findTags.forEach = (func) => {
+			rootsQueue.forEach((tag, index) => func(tag, index));
+		}
+
+		return findTags;
+	}
+
+
+
+	const daysInMonth = function(month, year) {
+	    return new Date(year, month+1, 0).getDate();
+	}
+
+	const getCurrentMonth = function() {
+		return new Date().getMonth();
+	}
+
+	const getCurrentDay = function() {
+		return ((new Date().getDay()) + 6) % 7;
+	}
+
+	const getCurrentYear = function() {
+		return new Date().getFullYear();
+	}
+
+	const getPrevMonth = function() {
+		return (new Date().getMonth() + 11) % 12;
+	}
+
+	const getPrevDay = function() {
+		return ((new Date().getDay()) + 5) % 7;
+	}
+
+	const getPrevYear = function() {
+		return (new Date().getFullYear()) - 1;
+	}
+
+	const addRowIntoTable = function(table, row) {
+		const numberOfColumns = selectTags(table)('thead')('tr')('th').getTags().length;
+		const tbody = selectTags(table)('tbody').getTag();
+		appendTree(tbody, createTree({
+			tr: {
+				td: {
+					count: row.length,
+					innerText: row,
+				}
+			}
+		}));
+	}
+
+	const getFirstDayOfWeekInMonth = function(year, month) {
+		return ((new Date(year, month, 1)).getDay() + 6) % 7;
+	};
+
+	const now = new Date();
+	const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+	const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Ибль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+
+	const firstDayOfWeekInCurrentMonth = getFirstDayOfWeekInMonth(getCurrentYear(), getCurrentMonth());
+	const currentNumberOfDayInMonth = daysInMonth(getCurrentMonth(), getCurrentYear());
+
+	const currentCalendar = [
+		...Array(firstDayOfWeekInCurrentMonth).fill(" "), 
+		...Array(currentNumberOfDayInMonth).fill('').map((v, i) => i+1),
+		...Array(7*6 - firstDayOfWeekInCurrentMonth - currentNumberOfDayInMonth).fill(" "),
+	];
+
+	const currentTbody = selectTags(getById("calendar"))('table', [0])('tbody').getTag();
+
+	window.takingDay = -1;
+
+	const createDeepObj = function() {
+		return new Proxy({}, {
+			get: function(target, name) {
+				if (!(name in target)) {
+					target[name] = createDeepObj();
+				}
+				return target[name];
+			},
+		});
+	}
+	window.infoAboutMonth = createDeepObj();
+
+	const getMonthData = function() {
+		saveTabpanels("condition");
+		for (const day of Object.keys(window.infoAboutMonth)) {
+			for (const tab of Object.keys(window.infoAboutMonth[day])) {
+				console.log(day, tab.split('-')[1], Object.values(window.infoAboutMonth[day][tab]));
+			}
+		}
+	}
+	
+
+
+	const fillTabpanels = function() {
+		selectTags(getById("condition"))("div")("div").forEach((tab) => {
+			const inps = selectTags(tab)("div")("input").forEach((inp) => {
+				if (typeof window.infoAboutMonth[window.takingDay-1][tab.id][inp.id] == 'boolean' && window.infoAboutMonth[window.takingDay-1][tab.id][inp.id] == true) {
+					inp.checked = true; 
+				} else {
+					inp.checked = false;
+				};
+			});
+		});
+	};
+
+	const saveTabpanels = function(conditionId) {
+		if (window.takingDay == -1) return;
+
+		selectTags(getById(conditionId))("div")("div").forEach((tab) => {
+			const inps = selectTags(tab)("div")("input").forEach((inp) => {
+				window.infoAboutMonth[window.takingDay-1][tab.id][inp.id] = inp.checked;
+			});
+		});
+	};
+
+	const takeDay = function(self) {
+
+		const employeesList = getEmpoyeesList();
+
+		saveTabpanels("condition");
+		clearTabpanels("condition");
+
+		generateTabpanel("condition", 'radio', employeesList, "appointment", "Заступает", 1);
+		generateTabpanel("condition", 'checkbox', employeesList, "wish", "Хочет");
+		generateTabpanel("condition", 'checkbox', employeesList, "unwish", "Не хочет");
+		generateTabpanel("condition", 'checkbox', employeesList, "holyday", "Отпуск");
+		generateTabpanel("condition", 'checkbox', employeesList, "sick", "Болеет/отгул");
+
+		generateTabpanelWithInfoTable("condition", employeesList.map((employee) => [employee.name, employee.phone,]), "employees", ["ФИО", "Номер телефона"], "Работники");
+
+		window.takingDay = self.nextSibling.innerText;
+
+		fillTabpanels("condition");	
+	};
+
+	appendTree(currentTbody, createTree({
+		tr: {
+			td: {
+				div: {
+					input: {
+						attrs: [{
+							value: "",
+							type: "submit",
+							class: "input-hide",
+							onclick: 'takeDay(this)',
+						}],
+					},
+					label: {
+						attrs: [{
+							class: "middle-size",
+						}],
+					},
+				},
+				count: 7,
+			},
+			count: 6,
+		}
+	}));
+
+
+	selectTags(currentTbody)('tr')('td')('div')('label').getTags().map((tag, i) => tag.innerText = currentCalendar[i]);
+
+	selectTags(currentTbody)('tr')('td')('div').forEach((tag, i) => {
+		const inp = selectTags(tag)('input').getTag();
+		const lab = selectTags(tag)('label').getTag();
+		if (lab.innerText == '') {
+			inp.remove();
+		}
+	});
+
+	const monthData = [];
+
+	currentCalendar.forEach((v, i) => {
+		if (v != " ") {
+			if ((i+1)%6 != 0) {
+				monthData.push("");
+			} else {
+				
+			}
+		}
+		
+	});
+
+</script>
+</body>
+</html>
